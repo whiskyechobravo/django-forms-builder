@@ -7,10 +7,29 @@ try:
 except ImportError:
     # For Django 1.8 compatibility
     from django.forms.extras import SelectDateWidget
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from forms_builder.forms.settings import USE_HTML5, EXTRA_FIELDS, EXTRA_WIDGETS
 from forms_builder.forms.utils import html5_field, import_attr
+
+
+class ReadOnlyWidget(forms.widgets.Widget):
+
+    def render(self, name, value, attrs=None):
+        """Render the value as a safe HTML fragment."""
+        return mark_safe(value)
+
+
+class ReadOnlyField(forms.Field):
+    widget = ReadOnlyWidget
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, disabled=True, **kwargs)
+
+    def clean(self, value):
+        self.widget.initial = self.initial
+        return self.initial
 
 
 # Constants for all available field types.
@@ -29,6 +48,7 @@ HIDDEN = 12
 NUMBER = 13
 URL = 14
 DOB = 15
+READONLY = 99
 
 # Names for all available field types.
 NAMES = (
@@ -47,6 +67,7 @@ NAMES = (
     (DATE_TIME, _("Date/time")),
     (DOB, _("Date of birth")),
     (HIDDEN, _("Hidden")),
+    (READONLY, _("Read-only HTML")),
 )
 
 # Field classes for all available field types.
@@ -66,6 +87,7 @@ CLASSES = {
     HIDDEN: forms.CharField,
     NUMBER: forms.FloatField,
     URL: forms.URLField,
+    READONLY: ReadOnlyField,
 }
 
 # Widgets for field types where a specialised widget is required.
@@ -76,6 +98,7 @@ WIDGETS = {
     DATE: SelectDateWidget,
     DOB: SelectDateWidget,
     HIDDEN: forms.HiddenInput,
+    READONLY: ReadOnlyWidget,
 }
 
 # Some helper groupings of field types.
