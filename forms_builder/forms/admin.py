@@ -55,7 +55,7 @@ if USE_SITES:
 
 class FieldAdmin(admin.TabularInline):
     model = Field
-    exclude = ('slug', )
+    # exclude = ('slug', )
 
 
 class FormAdmin(admin.ModelAdmin):
